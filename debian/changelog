@@ -1,0 +1,54 @@
+python3-cyberfusion-file-support (1.1.1) unstable; urgency=low
+
+  - Publish to PyPI
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Wed, 21 Aug 2024 16:53:00 +0200
+
+python3-cyberfusion-file-support (1.1) unstable; urgency=low
+
+  - Pass optional reference to queue
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Thu, 25 Jul 2024 14:30:00 +0200
+
+python3-cyberfusion-file-support (1.0.5.1) unstable; urgency=low
+
+  - Run command after copy
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Fri, 05 Jan 2024 18:51:00 +0200
+
+python3-cyberfusion-file-support (1.0.5) unstable; urgency=low
+
+  - Support bytes
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Fri, 05 Jan 2024 18:51:00 +0200
+
+python3-cyberfusion-file-support (1.0.4) unstable; urgency=low
+
+  - Hide outcomes of tmp file unlink
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Wed, 03 May 2023 18:03:00 +0200
+
+python3-cyberfusion-file-support (1.0.3) unstable; urgency=low
+
+  - Copy when changed and always unlink
+  - Add missing dependency on QueueSupport
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Wed, 03 May 2023 17:13:00 +0200
+
+python3-cyberfusion-file-support (1.0.2) unstable; urgency=low
+
+  - Add changed
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Wed, 03 May 2023 10:09:00 +0200
+
+python3-cyberfusion-file-support (1.0.1) unstable; urgency=low
+
+  - Allow no newline when no contents
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Wed, 03 May 2023 09:44:00 +0200
+
+python3-cyberfusion-file-support (1.0) unstable; urgency=low
+
+  - Initial release
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Tue, 02 May 2023 16:18:00 +0200
