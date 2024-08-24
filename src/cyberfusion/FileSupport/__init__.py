@@ -77,7 +77,9 @@ class DestinationFileReplacement:
             return self._contents
 
         default_comment = f"{self.default_comment_character} Update this file via your management interface.\n"
-        default_comment += f"{self.default_comment_character} Your changes will be overwritten.\n"
+        default_comment += (
+            f"{self.default_comment_character} Your changes will be overwritten.\n"
+        )
         default_comment += "\n"
 
         return default_comment + self._contents
@@ -146,9 +148,7 @@ class DestinationFileReplacement:
 
             if self.command:
                 self.queue.add(
-                    CommandItem(
-                        command=self.command, reference=self.reference
-                    ),
+                    CommandItem(command=self.command, reference=self.reference),
                 )
 
         self.queue.add(

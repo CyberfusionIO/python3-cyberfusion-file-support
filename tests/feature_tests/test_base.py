@@ -2,7 +2,6 @@ import os
 from typing import Union
 
 import pytest
-from pytest_mock import MockerFixture
 
 from cyberfusion.FileSupport import DestinationFileReplacement
 from cyberfusion.QueueSupport import Queue
@@ -23,9 +22,7 @@ def test_destination_file_replacement_not_exists(
 
     assert os.path.exists(non_existent_path)
     assert (
-        open(
-            non_existent_path, "rb" if isinstance(contents, bytes) else "r"
-        ).read()
+        open(non_existent_path, "rb" if isinstance(contents, bytes) else "r").read()
         == contents
     )
     assert not os.path.exists(destination_file_replacement.tmp_path)
@@ -46,9 +43,7 @@ def test_destination_file_replacement_exists(
     queue.process(preview=False)
 
     assert (
-        open(
-            existent_path, "rb" if isinstance(contents, bytes) else "r"
-        ).read()
+        open(existent_path, "rb" if isinstance(contents, bytes) else "r").read()
         == contents
     )
     assert not os.path.exists(destination_file_replacement.tmp_path)
