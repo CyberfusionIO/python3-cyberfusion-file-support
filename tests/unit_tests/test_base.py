@@ -1,4 +1,3 @@
-import os
 from typing import Generator
 
 import pytest
@@ -25,9 +24,7 @@ def test_destination_file_not_exists(non_existent_path: str) -> None:
     assert not _DestinationFile(path=non_existent_path).exists
 
 
-def test_destination_file_exists(
-    existent_path: Generator[str, None, None]
-) -> None:
+def test_destination_file_exists(existent_path: Generator[str, None, None]) -> None:
     assert _DestinationFile(path=existent_path).exists
 
 
@@ -36,7 +33,7 @@ def test_destination_file_not_exists_contents(non_existent_path: str) -> None:
 
 
 def test_destination_file_exists_contents(
-    existent_path: Generator[str, None, None]
+    existent_path: Generator[str, None, None],
 ) -> None:
     with open(existent_path, "w") as f:
         f.write(CONTENTS)
@@ -241,9 +238,7 @@ def test_destination_file_replacement_copy_item_in_queue_when_changed(
     outcomes = queue.process(preview=True)
 
     assert (
-        CopyItemCopyOutcome(
-            source=class_.tmp_path, destination=non_existent_path
-        )
+        CopyItemCopyOutcome(source=class_.tmp_path, destination=non_existent_path)
         in outcomes
     )
 
@@ -265,10 +260,8 @@ def test_destination_file_replacement_not_copy_item_in_queue_when_not_changed(
     outcomes = queue.process(preview=True)
 
     assert (
-        not CopyItemCopyOutcome(
-            source=class_.tmp_path, destination=existent_path
-        )
-        in outcomes
+        CopyItemCopyOutcome(source=class_.tmp_path, destination=existent_path)
+        not in outcomes
     )
 
 
@@ -346,13 +339,9 @@ def test_destination_file_replacement_unlink_item_in_queue_when_not_changed(
 
     class_.add_to_queue()
 
-    assert (
-        UnlinkItemUnlinkOutcome(path=class_.tmp_path)
-        in queue.items[0].outcomes
-    )
+    assert UnlinkItemUnlinkOutcome(path=class_.tmp_path) in queue.items[0].outcomes
     assert not any(
-        isinstance(x, UnlinkItemUnlinkOutcome)
-        for x in queue.process(preview=False)
+        isinstance(x, UnlinkItemUnlinkOutcome) for x in queue.process(preview=False)
     )
 
 
@@ -369,13 +358,9 @@ def test_destination_file_replacement_unlink_item_in_queue_when_changed(
 
     class_.add_to_queue()
 
-    assert (
-        UnlinkItemUnlinkOutcome(path=class_.tmp_path)
-        in queue.items[1].outcomes
-    )
+    assert UnlinkItemUnlinkOutcome(path=class_.tmp_path) in queue.items[1].outcomes
     assert not any(
-        isinstance(x, UnlinkItemUnlinkOutcome)
-        for x in queue.process(preview=False)
+        isinstance(x, UnlinkItemUnlinkOutcome) for x in queue.process(preview=False)
     )
 
 

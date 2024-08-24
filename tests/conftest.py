@@ -33,7 +33,7 @@ def non_existent_path() -> str:
 def existent_path() -> Generator[str, None, None]:
     path = get_path()
 
-    with open(path, "w") as f:
+    with open(path, "w"):
         pass
 
     yield path
