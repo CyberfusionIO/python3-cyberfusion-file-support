@@ -1,3 +1,9 @@
+python3-cyberfusion-file-support (1.1.1.2) unstable; urgency=low
+
+  - Remove deprecated setup.py in favour of pyproject.toml
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Sat, 24 Aug 2024 11:36:00 +0200
+
 python3-cyberfusion-file-support (1.1.1.1) unstable; urgency=low
 
   - Use pybuild + add pydist file
