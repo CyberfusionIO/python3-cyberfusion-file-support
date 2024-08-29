@@ -61,14 +61,6 @@ def test_destination_file_replacement_not_raises_no_contents_without_newline(
     ).contents
 
 
-def test_destination_file_replacement_not_raises_bytes_contents_without_newline(
-    queue: Queue, non_existent_path: str
-):
-    DestinationFileReplacement(
-        queue, contents=b"", destination_file_path=non_existent_path
-    ).contents
-
-
 # DestinationFileReplacement: default_comment_character
 
 
@@ -97,20 +89,6 @@ def test_destination_file_replacement_contents_without_default_comment_character
             default_comment_character=None,
         ).contents
         == CONTENTS
-    )
-
-
-def test_destination_file_replacement_bytes_contents_with_default_comment_character_not_adds(
-    queue: Queue, non_existent_path: str
-) -> None:
-    assert (
-        DestinationFileReplacement(
-            queue,
-            contents=CONTENTS.encode(),
-            destination_file_path=non_existent_path,
-            default_comment_character="#",
-        ).contents
-        == CONTENTS.encode()
     )
 
 
@@ -211,14 +189,6 @@ def test_destination_file_replacement_differences_when_destination_file_not_exis
 
     assert differences[2] == "@@ -0,0 +1 @@"
     assert differences[3] == "+foobar"
-
-
-def test_destination_file_replacement_not_differences_when_bytes(
-    queue: Queue, existent_path: Generator[str, None, None]
-) -> None:
-    assert not DestinationFileReplacement(
-        queue, contents=CONTENTS.encode(), destination_file_path=existent_path
-    ).differences
 
 
 # DestinationFileReplacement: add_to_queue

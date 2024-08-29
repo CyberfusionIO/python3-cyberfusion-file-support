@@ -3,7 +3,7 @@
 import difflib
 import filecmp
 import os
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from cyberfusion.Common import get_tmp_file
 from cyberfusion.QueueSupport import Queue
@@ -41,7 +41,7 @@ class DestinationFileReplacement:
         self,
         queue: Queue,
         *,
-        contents: Union[str, bytes],
+        contents: str,
         destination_file_path: str,
         default_comment_character: Optional[str] = None,
         command: Optional[List[str]] = None,
@@ -63,11 +63,8 @@ class DestinationFileReplacement:
         self._write_to_tmp_file()
 
     @property
-    def contents(self) -> Union[str, bytes]:
+    def contents(self) -> str:
         """Get contents."""
-        if not isinstance(self._contents, str):
-            return self._contents
-
         if self._contents != "" and not self._contents.endswith(
             "\n"
         ):  # Some programs require newline to consider last line completed
@@ -86,12 +83,7 @@ class DestinationFileReplacement:
 
     def _write_to_tmp_file(self) -> None:
         """Write contents to tmp file."""
-        if isinstance(self.contents, bytes):
-            open_mode = "wb"
-        else:
-            open_mode = "w"
-
-        with open(self.tmp_path, open_mode) as f:
+        with open(self.tmp_path, "w") as f:
             f.write(self.contents)
 
     @property
@@ -107,9 +99,6 @@ class DestinationFileReplacement:
 
         No differences are returned when contents is not string.
         """
-        if not isinstance(self._contents, str):
-            return []
-
         results = []
 
         for line in difflib.unified_diff(
@@ -118,7 +107,7 @@ class DestinationFileReplacement:
                 if self.destination_file.contents
                 else []
             ),
-            self.contents.splitlines(),  # type: ignore[arg-type]
+            self.contents.splitlines(),
             fromfile=self.tmp_path,
             tofile=self.destination_file.path,
             lineterm="",
