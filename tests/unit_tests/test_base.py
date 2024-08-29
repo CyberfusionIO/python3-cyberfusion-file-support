@@ -1,5 +1,5 @@
 from typing import Generator
-
+from cyberfusion.Common import get_tmp_file
 import pytest
 
 from cyberfusion.FileSupport import (
@@ -92,19 +92,21 @@ def test_destination_file_replacement_contents_without_default_comment_character
     )
 
 
-# DestinationFileReplacement: write_to_tmp_file
+# DestinationFileReplacement: write_to_file
 
 
-def test_destination_file_write_to_tmp_file_tmp_file_contents(
+def test_destination_file_write_to_file_contents(
     queue: Queue, non_existent_path: Generator[str, None, None]
 ) -> None:
+    PATH = get_tmp_file()
+
     destination_file_path = DestinationFileReplacement(
         queue, contents=CONTENTS, destination_file_path=non_existent_path
     )
 
-    destination_file_path._write_to_tmp_file()
+    destination_file_path.write_to_file(PATH)
 
-    assert open(destination_file_path.tmp_path, "r").read() == CONTENTS
+    assert open(PATH, "r").read() == CONTENTS
 
 
 # DestinationFileReplacement: changed

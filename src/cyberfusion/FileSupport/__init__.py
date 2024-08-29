@@ -60,7 +60,7 @@ class DestinationFileReplacement:
         self.tmp_path = get_tmp_file()
         self.destination_file = _DestinationFile(path=destination_file_path)
 
-        self._write_to_tmp_file()
+        self.write_to_file(self.tmp_path)
 
     @property
     def contents(self) -> str:
@@ -81,9 +81,9 @@ class DestinationFileReplacement:
 
         return default_comment + self._contents
 
-    def _write_to_tmp_file(self) -> None:
-        """Write contents to tmp file."""
-        with open(self.tmp_path, "w") as f:
+    def write_to_file(self, path: str) -> None:
+        """Write contents to file."""
+        with open(path, "w") as f:
             f.write(self.contents)
 
     @property
