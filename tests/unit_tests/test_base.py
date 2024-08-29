@@ -5,6 +5,9 @@ import pytest
 from cyberfusion.FileSupport import (
     DestinationFileReplacement,
     _DestinationFile,
+    EncryptionProperties,
+    encrypt_file,
+    DecryptionError,
 )
 from cyberfusion.QueueSupport import Queue
 from cyberfusion.QueueSupport.outcomes import (
@@ -30,6 +33,18 @@ def test_destination_file_exists(existent_path: Generator[str, None, None]) -> N
 
 def test_destination_file_not_exists_contents(non_existent_path: str) -> None:
     assert _DestinationFile(path=non_existent_path).contents is None
+
+
+def test_destination_file_encrypted_contents_failed(
+    existent_path: str, encryption_properties: EncryptionProperties
+) -> None:
+    with pytest.raises(
+        DecryptionError,
+        match=f"Decrypting the destination file at '{existent_path}' failed. Note that the file must already be encrypted using the specified encryption properties.",
+    ):
+        _DestinationFile(
+            path=existent_path, encryption_properties=encryption_properties
+        ).contents
 
 
 def test_destination_file_exists_contents(
@@ -152,6 +167,30 @@ def test_destination_file_replacement_not_changed(
     assert not destination_file_replacement.differences
 
     assert destination_file_replacement.changed is False
+
+
+def test_destination_file_replacement_not_changed_when_encrypted(
+    queue: Queue,
+    non_existent_path: Generator[str, None, None],
+    encryption_properties: EncryptionProperties,
+) -> None:
+    with open(non_existent_path, "wb") as f:
+        f.write(encrypt_file(encryption_properties, CONTENTS))
+
+    destination_file_replacement = DestinationFileReplacement(
+        queue,
+        contents=CONTENTS,
+        destination_file_path=non_existent_path,
+        encryption_properties=encryption_properties,
+    )
+
+    assert destination_file_replacement.destination_file.exists
+    assert not destination_file_replacement.differences
+
+    # Contents not changed, yet files are not the same (unencrypted vs encrypted)
+
+    assert destination_file_replacement.changed is False
+    assert open(destination_file_replacement.tmp_path, "rb").read() != CONTENTS
 
 
 # DestinationFileReplacement: differences
