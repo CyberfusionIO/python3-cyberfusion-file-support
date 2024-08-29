@@ -1,3 +1,11 @@
+python3-cyberfusion-file-support (1.2) unstable; urgency=low
+
+  - Turn _write_to_tmp_file into general-purpose write_to_file
+  - Remove bytes support
+  - Add encryption support
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Thu, 29 Aug 2024 20:14:00 +0200
+
 python3-cyberfusion-file-support (1.1.1.2) unstable; urgency=low
 
   - Remove deprecated setup.py in favour of pyproject.toml
