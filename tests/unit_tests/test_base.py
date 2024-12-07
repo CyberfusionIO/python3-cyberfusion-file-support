@@ -62,10 +62,15 @@ def test_destination_file_exists_contents(
 def test_destination_file_replacement_raises_contents_without_newline(
     queue: Queue, non_existent_path: str
 ):
-    with pytest.raises(ValueError):
-        DestinationFileReplacement(
-            queue, contents="foobar", destination_file_path=non_existent_path
-        ).contents
+    CONTENTS = "foobar"
+
+    assert not CONTENTS.endswith("\n")
+
+    contents = DestinationFileReplacement(
+        queue, contents=CONTENTS, destination_file_path=non_existent_path
+    ).contents
+
+    assert contents == CONTENTS + "\n"
 
 
 def test_destination_file_replacement_not_raises_no_contents_without_newline(
