@@ -97,8 +97,8 @@ class DestinationFileReplacement:
         """Get contents."""
         if self._contents != "" and not self._contents.endswith(
             "\n"
-        ):  # Some programs require newline to consider last line completed
-            raise ValueError
+        ):  # Some programs require EOL
+            self._contents += "\n"
 
         if not self.default_comment_character:
             return self._contents
