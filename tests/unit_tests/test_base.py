@@ -1,6 +1,7 @@
 from typing import Generator
 from cyberfusion.Common import get_tmp_file
 import pytest
+from cyberfusion.QueueSupport.items.copy import CopyItem
 
 from cyberfusion.FileSupport import (
     DestinationFileReplacement,
@@ -12,7 +13,6 @@ from cyberfusion.FileSupport import (
 from cyberfusion.QueueSupport import Queue
 from cyberfusion.QueueSupport.outcomes import (
     CommandItemRunOutcome,
-    CopyItemCopyOutcome,
     UnlinkItemUnlinkOutcome,
 )
 
@@ -23,16 +23,14 @@ COMMAND = ["true"]
 # _DestinationFile
 
 
-def test_destination_file_not_exists(non_existent_path: str) -> None:
-    assert not _DestinationFile(path=non_existent_path).exists
+def test_destination_file_not_exists_decrypt(non_existent_path: str) -> None:
+    assert _DestinationFile(path=non_existent_path).decrypt() is None
 
 
-def test_destination_file_exists(existent_path: Generator[str, None, None]) -> None:
-    assert _DestinationFile(path=existent_path).exists
-
-
-def test_destination_file_not_exists_contents(non_existent_path: str) -> None:
-    assert _DestinationFile(path=non_existent_path).contents is None
+def test_destination_file_exists_no_encryption_properties_decrypt(
+    existent_path: Generator[str, None, None],
+) -> None:
+    assert _DestinationFile(path=existent_path).decrypt() is None
 
 
 def test_destination_file_encrypted_contents_failed(
@@ -44,16 +42,7 @@ def test_destination_file_encrypted_contents_failed(
     ):
         _DestinationFile(
             path=existent_path, encryption_properties=encryption_properties
-        ).contents
-
-
-def test_destination_file_exists_contents(
-    existent_path: Generator[str, None, None],
-) -> None:
-    with open(existent_path, "w") as f:
-        f.write(CONTENTS)
-
-    assert _DestinationFile(path=existent_path).contents == CONTENTS
+        ).decrypt()
 
 
 # DestinationFileReplacement: contents
@@ -129,52 +118,10 @@ def test_destination_file_write_to_file_contents(
     assert open(PATH, "r").read() == CONTENTS
 
 
-# DestinationFileReplacement: changed
+# DestinationFileReplacement: add_to_queue
 
 
-def test_destination_file_replacement_changed_when_differences(
-    queue: Queue, existent_path: Generator[str, None, None]
-) -> None:
-    destination_file_replacement = DestinationFileReplacement(
-        queue, contents=CONTENTS, destination_file_path=existent_path
-    )
-
-    assert destination_file_replacement.destination_file.exists
-    assert destination_file_replacement.differences
-
-    assert destination_file_replacement.changed is True
-
-
-def test_destination_file_replacement_changed_when_new_destination_file(
-    queue: Queue, non_existent_path: Generator[str, None, None]
-) -> None:
-    destination_file_replacement = DestinationFileReplacement(
-        queue, contents="", destination_file_path=non_existent_path
-    )
-
-    assert not destination_file_replacement.destination_file.exists
-    assert not destination_file_replacement.differences
-
-    assert destination_file_replacement.changed is True
-
-
-def test_destination_file_replacement_not_changed(
-    queue: Queue, existent_path: Generator[str, None, None]
-) -> None:
-    with open(existent_path, "w") as f:
-        f.write(CONTENTS)
-
-    destination_file_replacement = DestinationFileReplacement(
-        queue, contents=CONTENTS, destination_file_path=existent_path
-    )
-
-    assert destination_file_replacement.destination_file.exists
-    assert not destination_file_replacement.differences
-
-    assert destination_file_replacement.changed is False
-
-
-def test_destination_file_replacement_not_changed_when_encrypted(
+def test_destination_file_replacement_not_copy_item_in_queue_when_encrypted_not_changed(
     queue: Queue,
     non_existent_path: Generator[str, None, None],
     encryption_properties: EncryptionProperties,
@@ -189,55 +136,75 @@ def test_destination_file_replacement_not_changed_when_encrypted(
         encryption_properties=encryption_properties,
     )
 
-    assert destination_file_replacement.destination_file.exists
-    assert not destination_file_replacement.differences
+    destination_file_replacement.add_to_queue()
+
+    assert not any(isinstance(item, CopyItem) for item in queue.items)
 
     # Contents not changed, yet files are not the same (unencrypted vs encrypted)
 
-    assert destination_file_replacement.changed is False
     assert open(destination_file_replacement.tmp_path, "rb").read() != CONTENTS
 
 
-# DestinationFileReplacement: differences
-
-
-def test_destination_file_replacement_differences_when_differences(
-    queue: Queue, existent_path: Generator[str, None, None]
+def test_destination_file_replacement_not_command_item_in_queue_when_encrypted_not_changed(
+    queue: Queue,
+    non_existent_path: Generator[str, None, None],
+    encryption_properties: EncryptionProperties,
 ) -> None:
-    differences = DestinationFileReplacement(
-        queue, contents=CONTENTS, destination_file_path=existent_path
-    ).differences
+    with open(non_existent_path, "wb") as f:
+        f.write(encrypt_file(encryption_properties, CONTENTS))
 
-    assert differences[2] == "@@ -0,0 +1 @@"
-    assert differences[3] == "+foobar"
-
-
-def test_destination_file_replacement_differences_when_not_differences(
-    queue: Queue, existent_path: Generator[str, None, None]
-) -> None:
-    with open(existent_path, "w") as f:
-        f.write(CONTENTS)
-
-    assert (
-        DestinationFileReplacement(
-            queue, contents=CONTENTS, destination_file_path=existent_path
-        ).differences
-        == []
+    destination_file_replacement = DestinationFileReplacement(
+        queue,
+        contents=CONTENTS,
+        destination_file_path=non_existent_path,
+        encryption_properties=encryption_properties,
+        command=COMMAND,
     )
 
+    destination_file_replacement.add_to_queue()
 
-def test_destination_file_replacement_differences_when_destination_file_not_exists(
-    queue: Queue, non_existent_path: str
+    outcomes = queue.process(preview=True)
+
+    assert CommandItemRunOutcome(command=COMMAND) not in outcomes
+
+
+def test_destination_file_replacement_copy_item_in_queue_when_encrypted_changed(
+    queue: Queue,
+    non_existent_path: Generator[str, None, None],
+    encryption_properties: EncryptionProperties,
 ) -> None:
-    differences = DestinationFileReplacement(
-        queue, contents=CONTENTS, destination_file_path=non_existent_path
-    ).differences
+    with open(non_existent_path, "wb") as f:
+        f.write(encrypt_file(encryption_properties, CONTENTS + "-example"))
 
-    assert differences[2] == "@@ -0,0 +1 @@"
-    assert differences[3] == "+foobar"
+    DestinationFileReplacement(
+        queue,
+        contents=CONTENTS,
+        destination_file_path=non_existent_path,
+        encryption_properties=encryption_properties,
+    ).add_to_queue()
+
+    assert any(isinstance(item, CopyItem) for item in queue.items)
 
 
-# DestinationFileReplacement: add_to_queue
+def test_destination_file_replacement_command_item_in_queue_when_encrypted_changed(
+    queue: Queue,
+    non_existent_path: Generator[str, None, None],
+    encryption_properties: EncryptionProperties,
+) -> None:
+    with open(non_existent_path, "wb") as f:
+        f.write(encrypt_file(encryption_properties, CONTENTS + "-example"))
+
+    DestinationFileReplacement(
+        queue,
+        contents=CONTENTS,
+        destination_file_path=non_existent_path,
+        encryption_properties=encryption_properties,
+        command=COMMAND,
+    ).add_to_queue()
+
+    outcomes = queue.process(preview=True)
+
+    assert CommandItemRunOutcome(command=COMMAND) in outcomes
 
 
 def test_destination_file_replacement_copy_item_in_queue_when_changed(
@@ -247,19 +214,12 @@ def test_destination_file_replacement_copy_item_in_queue_when_changed(
         queue, contents=CONTENTS, destination_file_path=non_existent_path
     )
 
-    assert class_.changed
-
     class_.add_to_queue()
 
-    outcomes = queue.process(preview=True)
-
-    assert (
-        CopyItemCopyOutcome(source=class_.tmp_path, destination=non_existent_path)
-        in outcomes
-    )
+    assert len([item for item in queue.items if isinstance(item, CopyItem)]) == 1
 
 
-def test_destination_file_replacement_not_copy_item_in_queue_when_not_changed(
+def test_destination_file_replacement_copy_item_in_queue_when_not_changed(
     queue: Queue, existent_path: Generator[str, None, None]
 ) -> None:
     with open(existent_path, "w") as f:
@@ -269,16 +229,9 @@ def test_destination_file_replacement_not_copy_item_in_queue_when_not_changed(
         queue, contents=CONTENTS, destination_file_path=existent_path
     )
 
-    assert not class_.changed
-
     class_.add_to_queue()
 
-    outcomes = queue.process(preview=True)
-
-    assert (
-        CopyItemCopyOutcome(source=class_.tmp_path, destination=existent_path)
-        not in outcomes
-    )
+    assert len([item for item in queue.items if isinstance(item, CopyItem)]) == 1
 
 
 def test_destination_file_replacement_command_item_in_queue_when_changed(
@@ -291,8 +244,6 @@ def test_destination_file_replacement_command_item_in_queue_when_changed(
         command=COMMAND,
     )
 
-    assert class_.changed
-
     class_.add_to_queue()
 
     outcomes = queue.process(preview=True)
@@ -300,7 +251,7 @@ def test_destination_file_replacement_command_item_in_queue_when_changed(
     assert CommandItemRunOutcome(command=COMMAND) in outcomes
 
 
-def test_destination_file_replacement_not_command_item_in_queue_when_not_changed(
+def test_destination_file_replacement_not_command_item_in_queue_when_no_outcomes_no_encryption_properties(
     queue: Queue, existent_path: str
 ) -> None:
     with open(existent_path, "w") as f:
@@ -312,8 +263,6 @@ def test_destination_file_replacement_not_command_item_in_queue_when_not_changed
         destination_file_path=existent_path,
         command=COMMAND,
     )
-
-    assert not class_.changed
 
     class_.add_to_queue()
 
@@ -351,11 +300,9 @@ def test_destination_file_replacement_unlink_item_in_queue_when_not_changed(
         destination_file_path=existent_path,
     )
 
-    assert not class_.changed
-
     class_.add_to_queue()
 
-    assert UnlinkItemUnlinkOutcome(path=class_.tmp_path) in queue.items[0].outcomes
+    assert UnlinkItemUnlinkOutcome(path=class_.tmp_path) in queue.items[1].outcomes
     assert not any(
         isinstance(x, UnlinkItemUnlinkOutcome) for x in queue.process(preview=False)
     )
@@ -369,8 +316,6 @@ def test_destination_file_replacement_unlink_item_in_queue_when_changed(
         contents=CONTENTS,
         destination_file_path=non_existent_path,
     )
-
-    assert class_.changed
 
     class_.add_to_queue()
 
