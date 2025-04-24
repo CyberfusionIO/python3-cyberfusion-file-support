@@ -123,18 +123,35 @@ class DestinationFileReplacement:
         with open(path, open_mode) as f:
             f.write(contents)
 
+    @property
+    def _copy_item(self) -> CopyItem:
+        """Get copy item."""
+        return CopyItem(
+            source=self.tmp_path,
+            destination=self.destination_file.path,
+            reference=self.reference,
+        )
+
+    @property
+    def changed(self) -> bool:
+        """Check if the destination file content has changed."""
+        if self.encryption_properties:
+            decrypted_contents = self.destination_file.decrypt()
+
+            return decrypted_contents != self.contents
+
+        return bool(self._copy_item.outcomes)
+
     def add_to_queue(self) -> None:
         """Add items for replacement to queue."""
         add_copy_item = True
-
-        decrypted_contents = self.destination_file.decrypt()
 
         # If encrypted, only add CopyItem when unencrypted contents changed.
         # CopyItem does not account for encryption, so without this check the
         # file would always be copied.
 
-        if decrypted_contents:
-            add_copy_item = decrypted_contents != self.contents
+        if self.encryption_properties:
+            add_copy_item = self.changed
 
         # Copy and unlink instead of move. MoveItem copies metadata (which
         # means mode etc. of destination file is incorrect, as set to the tmp
@@ -143,11 +160,7 @@ class DestinationFileReplacement:
         # is unchanged.
 
         if add_copy_item:
-            copy_item = CopyItem(
-                source=self.tmp_path,
-                destination=self.destination_file.path,
-                reference=self.reference,
-            )
+            copy_item = self._copy_item
 
             self.queue.add(copy_item)
 
