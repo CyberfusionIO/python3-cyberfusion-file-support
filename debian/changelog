@@ -1,3 +1,9 @@
+python3-cyberfusion-file-support (1.6.0) unstable; urgency=low
+
+  - Re-add changed logic
+
+ -- Mika Scheer <mscheer@cyberfusion.io>  Thu, 24 Apr 2025 19:04:00 +0200
+
 python3-cyberfusion-file-support (1.5) unstable; urgency=low
 
   - Delegate difference logic to QueueSupport
