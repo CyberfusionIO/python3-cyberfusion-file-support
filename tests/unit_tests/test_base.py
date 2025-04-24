@@ -118,6 +118,60 @@ def test_destination_file_write_to_file_contents(
     assert open(PATH, "r").read() == CONTENTS
 
 
+# DestinationFileReplacement: changed
+
+
+def test_destination_file_replacement_not_changed_when_encrypted_not_changed(
+    queue: Queue,
+    non_existent_path: Generator[str, None, None],
+    encryption_properties: EncryptionProperties,
+) -> None:
+    with open(non_existent_path, "wb") as f:
+        f.write(encrypt_file(encryption_properties, CONTENTS))
+
+    assert not DestinationFileReplacement(
+        queue,
+        contents=CONTENTS,
+        destination_file_path=non_existent_path,
+        encryption_properties=encryption_properties,
+    ).changed
+
+
+def test_destination_file_replacement_changed_when_encrypted_changed(
+    queue: Queue,
+    non_existent_path: Generator[str, None, None],
+    encryption_properties: EncryptionProperties,
+) -> None:
+    with open(non_existent_path, "wb") as f:
+        f.write(encrypt_file(encryption_properties, CONTENTS + "-example"))
+
+    assert DestinationFileReplacement(
+        queue,
+        contents=CONTENTS,
+        destination_file_path=non_existent_path,
+        encryption_properties=encryption_properties,
+    ).changed
+
+
+def test_destination_file_replacement_changed_when_changed(
+    queue: Queue, non_existent_path: str
+) -> None:
+    assert DestinationFileReplacement(
+        queue, contents=CONTENTS, destination_file_path=non_existent_path
+    ).changed
+
+
+def test_destination_file_replacement_not_changed_when_not_changed(
+    queue: Queue, existent_path: Generator[str, None, None]
+) -> None:
+    with open(existent_path, "w") as f:
+        f.write(CONTENTS)
+
+    assert not DestinationFileReplacement(
+        queue, contents=CONTENTS, destination_file_path=existent_path
+    ).changed
+
+
 # DestinationFileReplacement: add_to_queue
 
 
