@@ -1,3 +1,9 @@
+python3-cyberfusion-file-support (1.5) unstable; urgency=low
+
+  - Delegate difference logic to QueueSupport
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Fri, 04 Apr 2025 17:35:00 +0200
+
 python3-cyberfusion-file-support (1.4) unstable; urgency=low
 
   - Automatically add EOL

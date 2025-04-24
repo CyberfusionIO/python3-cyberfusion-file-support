@@ -1,7 +1,5 @@
 """Classes for files."""
 
-import difflib
-
 import os
 
 from typing import List, Optional, Union
@@ -35,19 +33,14 @@ class _DestinationFile:
         self.encryption_properties = encryption_properties
 
     @property
-    def exists(self) -> bool:
+    def _exists(self) -> bool:
         """Get if exists."""
         return os.path.exists(self.path)
 
-    @property
-    def contents(self) -> Optional[str]:
-        """Get contents."""
-        if not self.exists:
+    def decrypt(self) -> Optional[str]:
+        """Decrypt file."""
+        if not self._exists or not self.encryption_properties:
             return None
-
-        if not self.encryption_properties:
-            with open(self.path, "r") as f:
-                return f.read()
 
         try:
             return decrypt_file(self.encryption_properties, self.path)
@@ -130,57 +123,35 @@ class DestinationFileReplacement:
         with open(path, open_mode) as f:
             f.write(contents)
 
-    @property
-    def changed(self) -> bool:
-        """Get if destination file will change."""
-        if not self.destination_file.exists:
-            return True
-
-        return self.destination_file.contents != self.contents
-
-    @property
-    def differences(self) -> List[str]:
-        """Get differences with destination file.
-
-        No differences are returned when contents is not string.
-        """
-        results = []
-
-        for line in difflib.unified_diff(
-            (
-                self.destination_file.contents.splitlines()
-                if self.destination_file.contents
-                else []
-            ),
-            self.contents.splitlines(),
-            fromfile=self.tmp_path,
-            tofile=self.destination_file.path,
-            lineterm="",
-            n=0,
-        ):
-            results.append(line)
-
-        return results
-
     def add_to_queue(self) -> None:
         """Add items for replacement to queue."""
-        if self.changed:
-            # Copy when changed and always unlink, instead of move when changed
-            # and unlink when changed. MoveItem copies metadata (which means
-            # mode etc. of destination file is incorrect, as set to the tmp file
-            # until corrected by later queue items). CopyItem does not copy
-            # metadata, so if the destination file already exists, its mode
-            # etc. is unchanged.
+        add_copy_item = True
 
-            self.queue.add(
-                CopyItem(
-                    source=self.tmp_path,
-                    destination=self.destination_file.path,
-                    reference=self.reference,
-                ),
+        decrypted_contents = self.destination_file.decrypt()
+
+        # If encrypted, only add CopyItem when unencrypted contents changed.
+        # CopyItem does not account for encryption, so without this check the
+        # file would always be copied.
+
+        if decrypted_contents:
+            add_copy_item = decrypted_contents != self.contents
+
+        # Copy and unlink instead of move. MoveItem copies metadata (which
+        # means mode etc. of destination file is incorrect, as set to the tmp
+        # file until corrected by later queue items). CopyItem does not copy
+        # metadata, so if the destination file already exists, its mode etc.
+        # is unchanged.
+
+        if add_copy_item:
+            copy_item = CopyItem(
+                source=self.tmp_path,
+                destination=self.destination_file.path,
+                reference=self.reference,
             )
 
-            if self.command:
+            self.queue.add(copy_item)
+
+            if self.command and copy_item.outcomes:
                 self.queue.add(
                     CommandItem(command=self.command, reference=self.reference),
                 )
