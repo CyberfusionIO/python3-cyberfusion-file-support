@@ -22,6 +22,7 @@ unit test and feature test:
     - !reference [.add repositories, script]
     - pip install --no-cache-dir -r requirements/test.txt
     - pip install .
+    - queue-support-migrate
     - pytest -n 10 -vvv --cov-branch --cov=cyberfusion.FileSupport --cov-config=.coveragerc --cov-fail-under=100 --junitxml=report-pytest.xml
   artifacts:
     reports:
