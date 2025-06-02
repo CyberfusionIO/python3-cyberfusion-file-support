@@ -12,7 +12,7 @@ authors = [
 ]
 dependencies = [
     "python3-cyberfusion-common~=2.0",
-    "python3-cyberfusion-queue-support~=1.7.0",
+    "python3-cyberfusion-queue-support~=2.2.1",
 ]
 
 [project.urls]
