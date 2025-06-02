@@ -1,3 +1,9 @@
+python3-cyberfusion-file-support (1.6.1) unstable; urgency=low
+
+  - Bump QueueSupport
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Mon, 02 Jun 2025 16:57:00 +0200
+
 python3-cyberfusion-file-support (1.6.0) unstable; urgency=low
 
   - Re-add changed logic
