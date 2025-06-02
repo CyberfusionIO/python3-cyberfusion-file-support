@@ -192,7 +192,9 @@ def test_destination_file_replacement_not_copy_item_in_queue_when_encrypted_not_
 
     destination_file_replacement.add_to_queue()
 
-    assert not any(isinstance(item, CopyItem) for item in queue.items)
+    assert not any(
+        isinstance(item_mapping.item, CopyItem) for item_mapping in queue.item_mappings
+    )
 
     # Contents not changed, yet files are not the same (unencrypted vs encrypted)
 
@@ -237,7 +239,9 @@ def test_destination_file_replacement_copy_item_in_queue_when_encrypted_changed(
         encryption_properties=encryption_properties,
     ).add_to_queue()
 
-    assert any(isinstance(item, CopyItem) for item in queue.items)
+    assert any(
+        isinstance(item_mapping.item, CopyItem) for item_mapping in queue.item_mappings
+    )
 
 
 def test_destination_file_replacement_command_item_in_queue_when_encrypted_changed(
@@ -270,7 +274,16 @@ def test_destination_file_replacement_copy_item_in_queue_when_changed(
 
     class_.add_to_queue()
 
-    assert len([item for item in queue.items if isinstance(item, CopyItem)]) == 1
+    assert (
+        len(
+            [
+                item_mapping.item
+                for item_mapping in queue.item_mappings
+                if isinstance(item_mapping.item, CopyItem)
+            ]
+        )
+        == 1
+    )
 
 
 def test_destination_file_replacement_copy_item_in_queue_when_not_changed(
@@ -285,7 +298,16 @@ def test_destination_file_replacement_copy_item_in_queue_when_not_changed(
 
     class_.add_to_queue()
 
-    assert len([item for item in queue.items if isinstance(item, CopyItem)]) == 1
+    assert (
+        len(
+            [
+                item_mapping.item
+                for item_mapping in queue.item_mappings
+                if isinstance(item_mapping.item, CopyItem)
+            ]
+        )
+        == 1
+    )
 
 
 def test_destination_file_replacement_command_item_in_queue_when_changed(
@@ -356,7 +378,10 @@ def test_destination_file_replacement_unlink_item_in_queue_when_not_changed(
 
     class_.add_to_queue()
 
-    assert UnlinkItemUnlinkOutcome(path=class_.tmp_path) in queue.items[1].outcomes
+    assert (
+        UnlinkItemUnlinkOutcome(path=class_.tmp_path)
+        in queue.item_mappings[1].item.outcomes
+    )
     assert not any(
         isinstance(x, UnlinkItemUnlinkOutcome) for x in queue.process(preview=False)
     )
@@ -373,7 +398,10 @@ def test_destination_file_replacement_unlink_item_in_queue_when_changed(
 
     class_.add_to_queue()
 
-    assert UnlinkItemUnlinkOutcome(path=class_.tmp_path) in queue.items[1].outcomes
+    assert (
+        UnlinkItemUnlinkOutcome(path=class_.tmp_path)
+        in queue.item_mappings[1].item.outcomes
+    )
     assert not any(
         isinstance(x, UnlinkItemUnlinkOutcome) for x in queue.process(preview=False)
     )
@@ -396,5 +424,5 @@ def test_destination_file_replacement_reference_passed(
     )
     destination_file_replacement.add_to_queue()
 
-    for item in queue.items:
-        assert item.reference == REFERENCE
+    for item_mapping in queue.item_mappings:
+        assert item_mapping.item.reference == REFERENCE
