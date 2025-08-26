@@ -1,3 +1,9 @@
+python3-cyberfusion-file-support (1.6.4) unstable; urgency=low
+
+  - Bump QueueSupport
+
+ -- Mika Scheer <mscheer@cyberfusion.io>  Tue, 26 Aug 2025 13:29:00 +0200
+
 python3-cyberfusion-file-support (1.6.3) unstable; urgency=low
 
   - Bump QueueSupport
