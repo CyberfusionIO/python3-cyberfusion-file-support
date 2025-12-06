@@ -219,7 +219,7 @@ def test_destination_file_replacement_not_command_item_in_queue_when_encrypted_n
 
     destination_file_replacement.add_to_queue()
 
-    outcomes = queue.process(preview=True)
+    _, outcomes = queue.process(preview=True)
 
     assert CommandItemRunOutcome(command=COMMAND) not in outcomes
 
@@ -260,7 +260,7 @@ def test_destination_file_replacement_command_item_in_queue_when_encrypted_chang
         command=COMMAND,
     ).add_to_queue()
 
-    outcomes = queue.process(preview=True)
+    _, outcomes = queue.process(preview=True)
 
     assert CommandItemRunOutcome(command=COMMAND) in outcomes
 
@@ -322,7 +322,7 @@ def test_destination_file_replacement_command_item_in_queue_when_changed(
 
     class_.add_to_queue()
 
-    outcomes = queue.process(preview=True)
+    _, outcomes = queue.process(preview=True)
 
     assert CommandItemRunOutcome(command=COMMAND) in outcomes
 
@@ -342,7 +342,7 @@ def test_destination_file_replacement_not_command_item_in_queue_when_no_outcomes
 
     class_.add_to_queue()
 
-    outcomes = queue.process(preview=True)
+    _, outcomes = queue.process(preview=True)
 
     assert CommandItemRunOutcome(command=COMMAND) not in outcomes
 
@@ -359,7 +359,7 @@ def test_destination_file_replacement_not_command_item_in_queue_when_not_command
 
     class_.add_to_queue()
 
-    outcomes = queue.process(preview=True)
+    _, outcomes = queue.process(preview=True)
 
     assert not any(isinstance(x, CommandItemRunOutcome) for x in outcomes)
 
@@ -382,9 +382,10 @@ def test_destination_file_replacement_unlink_item_in_queue_when_not_changed(
         UnlinkItemUnlinkOutcome(path=class_.tmp_path)
         in queue.item_mappings[1].item.outcomes
     )
-    assert not any(
-        isinstance(x, UnlinkItemUnlinkOutcome) for x in queue.process(preview=False)
-    )
+
+    _, outcomes = queue.process(preview=False)
+
+    assert not any(isinstance(x, UnlinkItemUnlinkOutcome) for x in outcomes)
 
 
 def test_destination_file_replacement_unlink_item_in_queue_when_changed(
@@ -402,9 +403,10 @@ def test_destination_file_replacement_unlink_item_in_queue_when_changed(
         UnlinkItemUnlinkOutcome(path=class_.tmp_path)
         in queue.item_mappings[1].item.outcomes
     )
-    assert not any(
-        isinstance(x, UnlinkItemUnlinkOutcome) for x in queue.process(preview=False)
-    )
+
+    _, outcomes = queue.process(preview=False)
+
+    assert not any(isinstance(x, UnlinkItemUnlinkOutcome) for x in outcomes)
 
 
 # DestinationFileReplacement: reference
