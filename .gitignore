@@ -134,3 +134,8 @@ report-mypy.xml
 
 # macOS
 .DS_Store
+
+# Project
+queue-support.db
+queue-support.db-shm
+queue-support.db-wal
