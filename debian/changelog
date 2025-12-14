@@ -1,3 +1,9 @@
+python3-cyberfusion-file-support (1.8) unstable; urgency=low
+
+  - Update to Trixie
+
+ -- William Edwards <wedwards@cyberfusion.nl>  Sun, 14 Dec 2025 12:28:00 +0200
+
 python3-cyberfusion-file-support (1.7) unstable; urgency=low
 
   - Update QueueSupport

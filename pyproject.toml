@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "python3-cyberfusion-file-support"
-version = "1.7"
+version = "1.8"
 description = "Library for idempotent writing to files."
 readme = "README.md"
 authors = [
     { name = "Cyberfusion", email = "support@cyberfusion.io" },
 ]
 dependencies = [
-    "python3-cyberfusion-common~=2.0",
-    "python3-cyberfusion-queue-support~=3.0",
+    "python3-cyberfusion-common~=2.12",
+    "python3-cyberfusion-queue-support~=3.3",
 ]
 
 [project.urls]
