@@ -1,7 +1,9 @@
 from typing import Generator
 from cyberfusion.Common import get_tmp_file
 import pytest
+from cyberfusion.QueueSupport.items.command import CommandItem
 from cyberfusion.QueueSupport.items.copy import CopyItem
+from cyberfusion.QueueSupport.items.unlink import UnlinkItem
 
 from cyberfusion.FileSupport import (
     DestinationFileReplacement,
@@ -11,10 +13,6 @@ from cyberfusion.FileSupport import (
     DecryptionError,
 )
 from cyberfusion.QueueSupport import Queue
-from cyberfusion.QueueSupport.outcomes import (
-    CommandItemRunOutcome,
-    UnlinkItemUnlinkOutcome,
-)
 
 CONTENTS = "foobar\n"
 COMMAND = ["true"]
@@ -219,9 +217,9 @@ def test_destination_file_replacement_not_command_item_in_queue_when_encrypted_n
 
     destination_file_replacement.add_to_queue()
 
-    _, outcomes = queue.process(preview=True)
-
-    assert CommandItemRunOutcome(command=COMMAND) not in outcomes
+    assert CommandItem(command=COMMAND) not in [
+        item_mapping.item for item_mapping in queue.item_mappings
+    ]
 
 
 def test_destination_file_replacement_copy_item_in_queue_when_encrypted_changed(
@@ -260,9 +258,9 @@ def test_destination_file_replacement_command_item_in_queue_when_encrypted_chang
         command=COMMAND,
     ).add_to_queue()
 
-    _, outcomes = queue.process(preview=True)
-
-    assert CommandItemRunOutcome(command=COMMAND) in outcomes
+    assert CommandItem(command=COMMAND) in [
+        item_mapping.item for item_mapping in queue.item_mappings
+    ]
 
 
 def test_destination_file_replacement_copy_item_in_queue_when_changed(
@@ -322,9 +320,9 @@ def test_destination_file_replacement_command_item_in_queue_when_changed(
 
     class_.add_to_queue()
 
-    _, outcomes = queue.process(preview=True)
-
-    assert CommandItemRunOutcome(command=COMMAND) in outcomes
+    assert CommandItem(command=COMMAND) in [
+        item_mapping.item for item_mapping in queue.item_mappings
+    ]
 
 
 def test_destination_file_replacement_not_command_item_in_queue_when_no_outcomes_no_encryption_properties(
@@ -342,9 +340,9 @@ def test_destination_file_replacement_not_command_item_in_queue_when_no_outcomes
 
     class_.add_to_queue()
 
-    _, outcomes = queue.process(preview=True)
-
-    assert CommandItemRunOutcome(command=COMMAND) not in outcomes
+    assert CommandItem(command=COMMAND) not in [
+        item_mapping.item for item_mapping in queue.item_mappings
+    ]
 
 
 def test_destination_file_replacement_not_command_item_in_queue_when_not_command(
@@ -359,9 +357,9 @@ def test_destination_file_replacement_not_command_item_in_queue_when_not_command
 
     class_.add_to_queue()
 
-    _, outcomes = queue.process(preview=True)
-
-    assert not any(isinstance(x, CommandItemRunOutcome) for x in outcomes)
+    assert CommandItem(command=COMMAND) not in [
+        item_mapping.item for item_mapping in queue.item_mappings
+    ]
 
 
 def test_destination_file_replacement_unlink_item_in_queue_when_not_changed(
@@ -378,14 +376,13 @@ def test_destination_file_replacement_unlink_item_in_queue_when_not_changed(
 
     class_.add_to_queue()
 
-    assert (
-        UnlinkItemUnlinkOutcome(path=class_.tmp_path)
-        in queue.item_mappings[1].item.outcomes
-    )
+    items = [item_mapping.item for item_mapping in queue.item_mappings]
 
-    _, outcomes = queue.process(preview=False)
+    unlink_item = UnlinkItem(path=class_.tmp_path)
 
-    assert not any(isinstance(x, UnlinkItemUnlinkOutcome) for x in outcomes)
+    assert unlink_item in items
+
+    assert items[items.index(unlink_item)].hide_outcomes is True
 
 
 def test_destination_file_replacement_unlink_item_in_queue_when_changed(
@@ -399,14 +396,13 @@ def test_destination_file_replacement_unlink_item_in_queue_when_changed(
 
     class_.add_to_queue()
 
-    assert (
-        UnlinkItemUnlinkOutcome(path=class_.tmp_path)
-        in queue.item_mappings[1].item.outcomes
-    )
+    items = [item_mapping.item for item_mapping in queue.item_mappings]
 
-    _, outcomes = queue.process(preview=False)
+    unlink_item = UnlinkItem(path=class_.tmp_path)
 
-    assert not any(isinstance(x, UnlinkItemUnlinkOutcome) for x in outcomes)
+    assert unlink_item in items
+
+    assert items[items.index(unlink_item)].hide_outcomes is True
 
 
 # DestinationFileReplacement: reference
